@@ -1,3 +1,4 @@
 .env
 .newslyenv
 .cache
+__pycache__/
