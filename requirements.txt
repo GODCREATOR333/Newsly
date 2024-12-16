@@ -1,0 +1,5 @@
+autogen==0.5.3
+ollama==0.4.4
+protobuf==5.29.1
+pyautogen==0.5.3
+python-dotenv==1.0.1
