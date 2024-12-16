@@ -1,3 +1,5 @@
+## This Demo python code is using the autogen's ConversableAgent function along with ollama client
+
 from autogen import ConversableAgent
 from ollama import Client
 
