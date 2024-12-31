@@ -2,69 +2,60 @@ import requests
 import jwt
 from datetime import datetime as date
 
-# Admin API key
-key = '677357fd6fdb05d2a4552f5c:940e0b8fd264043422a9612de7176e26a41e7b06defc78ce712c61a2aa4fc4eb'
+class GhostAPI:
+    def __init__(self, admin_api_key, api_url):
+        self.api_url = api_url
+        self.id, self.secret = admin_api_key.split(':')
 
-# Split the key into ID and SECRET
-id, secret = key.split(':')
+    def _generate_token(self):
+        """Generate a JWT token for authentication."""
+        iat = int(date.now().timestamp())
+        header = {'alg': 'HS256', 'typ': 'JWT', 'kid': self.id}
+        payload = {
+            'iat': iat,
+            'exp': iat + 5 * 60,
+            'aud': '/admin/'
+        }
+        return jwt.encode(payload, bytes.fromhex(self.secret), algorithm='HS256', headers=header)
 
-# Prepare header and payload
-iat = int(date.now().timestamp())
+    def post_article(self, title, content, feature_image, status="published"):
+        """Post a single article to the Ghost CMS."""
+        token = self._generate_token()
+        headers = {'Authorization': f'Ghost {token}'}
+        body = {
+            "posts": [
+                {
+                    "title": title,
+                    "lexical": content,
+                    "status": status,
+                    "feature_image": feature_image
+                }
+            ]
+        }
+        response = requests.post(f"{self.api_url}/posts/", json=body, headers=headers)
+        return response
 
-header = {'alg': 'HS256', 'typ': 'JWT', 'kid': id}
-payload = {
-    'iat': iat,
-    'exp': iat + 5 * 60,
-    'aud': '/admin/'
-}
+# Example usage:
+if __name__ == "__main__":
+    api_key = '677357fd6fdb05d2a4552f5c:940e0b8fd264043422a9612de7176e26a41e7b06defc78ce712c61a2aa4fc4eb'
+    api_url = 'http://localhost:2368/ghost/api/admin'
+    ghost_api = GhostAPI(api_key, api_url)
 
-# Create the token (including decoding secret)
-token = jwt.encode(payload, bytes.fromhex(secret), algorithm='HS256', headers=header)
+    # Generate articles dynamically in your workflow
+    generated_articles = [
+        {
+            "title": "AI-Powered Article 1",
+            "content": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"This is an AI-generated article content.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
+            "feature_image": "https://www.example.com/images/ai-article1.jpg"
+        },
+        # Add more generated articles here
+    ]
 
-# Prepare the API endpoint and headers
-url = 'http://localhost:2368/ghost/api/admin/posts/'
-headers = {'Authorization': 'Ghost {}'.format(token)}
-
-# Data for the posts
-posts_data = [
-    {
-        "title": "Exploring the Enchanted Forests of New Zealand",
-        "lexical": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"New Zealand is home to some of the most stunning and magical forests in the world. From towering trees to lush ferns, these enchanted forests will leave you feeling like you’ve stepped into a fairy tale.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
-        "status": "published",
-        "feature_image": "https://www.example.com/images/forest-new-zealand.jpg"
-    },
-    {
-        "title": "Unveiling the Mysteries of the Sahara Desert",
-        "lexical": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"The Sahara Desert is more than just endless dunes. It’s a land of ancient secrets and breathtaking landscapes, where the sand stretches as far as the eye can see and hidden oases offer a refreshing escape.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
-        "status": "published",
-        "feature_image": "https://www.example.com/images/sahara-desert.jpg"
-    },
-    {
-        "title": "Top 10 Hidden Beaches Around the World",
-        "lexical": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"From secluded coves to remote coastal paradises, discover the world’s most hidden and untouched beaches, perfect for anyone seeking peace and solitude by the ocean.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
-        "status": "published",
-        "feature_image": "https://www.example.com/images/hidden-beaches.jpg"
-    },
-    {
-        "title": "The Ice Caves of Iceland: A Winter Wonderland",
-        "lexical": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"Iceland’s ice caves are a wonder to behold, with their striking blue ice formations and surreal atmosphere. These natural creations are a must-see for any winter traveler seeking adventure.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
-        "status": "published",
-        "feature_image": "https://www.example.com/images/ice-caves-iceland.jpg"
-    },
-    {
-        "title": "Snowshoeing through the Swiss Alps: A Winter Adventure",
-        "lexical": "{\"root\":{\"children\":[{\"children\":[{\"detail\":0,\"format\":0,\"mode\":\"normal\",\"style\":\"\",\"text\":\"The Swiss Alps offer some of the best winter landscapes in the world. Snowshoeing through these towering mountains and quaint villages provides an unparalleled winter adventure.\",\"type\":\"extended-text\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"paragraph\",\"version\":1}],\"direction\":\"ltr\",\"format\":\"\",\"indent\":0,\"type\":\"root\",\"version\":1}}",
-        "status": "published",
-        "feature_image": "https://www.example.com/images/swiss-alps-snowshoeing.jpg"
-    },
-    # Add the remaining posts here...
-]
-
-# Loop through the posts data and send each post separately
-for post_data in posts_data:
-    body = {"posts": [post_data]}  # Wrap each post in a list as the API expects a single post per request
-    r = requests.post(url, json=body, headers=headers)
-    
-    # Print the response for each post
-    print(f"Status code for '{post_data['title']}': {r.status_code}")
-    print(r.text)  # Prints the response text for debugging
+    for article in generated_articles:
+        response = ghost_api.post_article(
+            title=article["title"],
+            content=article["content"],
+            feature_image=article["feature_image"]
+        )
+        print(f"Status code for '{article['title']}': {response.status_code}")
+        print(response.text)
