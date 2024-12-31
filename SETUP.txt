@@ -1,0 +1,35 @@
+In the (.newslyenv) godcreator333:/usr/local/searxng-docker/searxng/settings.yaml
+
+GNU nano 6.2                                                                                                                                         settings.yml                                                                                                                                                  
+# see https://docs.searxng.org/admin/settings/settings.html#settings-use-default-settings
+use_default_settings: true
+server:
+  # base_url is defined in the SEARXNG_BASE_URL environment variable, see .env and docker-compose.yml
+  secret_key: "24597f5dcd903f5dc1abc89d2570e89816c3d8e1c0e999c0bf61c5df4a3062fa"  # change this!
+  limiter: false  # can be disabled for a private instance
+  image_proxy: true
+ui:
+  static_use_hash: true
+redis:
+  url: redis://redis:6379/0
+search:
+  # Filter results. 0: None, 1: Moderate, 2: Strict
+  safe_search: 0
+  # remove format to deny access, use lower case.
+  # formats: [html, csv, json, rss]
+  formats:
+    - html
+    - json
+
+#### To Start Searx : go to the dir with docker-compose .i.e (.newslyenv) godcreator333:/usr/local/searxng-docker
+                      run : sudo docker compose start
+        
+#### To start open-webui : cd home_dir
+                          run : docker start open-webui
+
+#### To use the searxng in open-webui : Go to admin setting and add search_query to searxng
+                                        search_query = http://host.docker.internal:8080/search?q=<query>
+
+#### TO start ghost docker : First start mysql service using systemctl  sudo systemctl start mysql ,sudo systemctl enable mysql  
+                            $ docker run -d --name some-ghost -e NODE_ENV=development -e url=http://localhost:3001 -p 3001:2368 ghost
+                                       

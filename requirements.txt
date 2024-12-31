@@ -1,5 +1,14 @@
 autogen==0.5.3
-ollama==0.4.4
-protobuf==5.29.1
+gpt_researcher==0.10.9
+langchain_ollama==0.2.2
+ollama==0.4.5
+protobuf==5.29.2
 pyautogen==0.5.3
+pybind11==2.13.6
+PyJWT==2.10.1
+PyJWT==2.10.1
 python-dotenv==1.0.1
+Requests==2.32.3
+scrapegraphai==1.33.3
+setuptools==75.6.0
+typing_extensions==4.12.2

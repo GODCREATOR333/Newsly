@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@tryghost/admin-api": "^1.13.12",
+    "@tryghost/content-api": "^1.11.21",
+    "ghost-cli": "^1.26.1"
+  }
+}
