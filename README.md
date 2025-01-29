@@ -80,7 +80,7 @@ Contributions are highly encouraged. Please submit **pull requests (PRs)** or ra
 
 ## 📜 Licensing Information
 
-This project is distributed under the MIT License. Refer to the [LICENSE](LICENSE) file for further details.
+This project is distributed under the MIT License.
 
 ## 🌐 Connect with Us
 
