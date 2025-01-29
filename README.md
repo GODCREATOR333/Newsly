@@ -1,5 +1,7 @@
 # Newsly
 
+*This project is still in heavy development, i am adding new features and new models*
+
 **Newsly** is an advanced, self-hosted artificial intelligence platform designed to address the proliferation of misinformation and enhance journalistic accountability. It employs a **Retrieval-Augmented Generation (RAG) pipeline** to systematically extract, cross-verify, and process news articles utilizing **SearxNG** (a self-hosted metasearch engine) and cloud-based APIs (**Google Cloud/Gemini**).
 
 The system integrates **multi-agent orchestration via Autogen AG2** alongside **Qdrant Vector Database**, ensuring robust, transparent, and highly accurate news analysis and content generation.
@@ -83,6 +85,5 @@ Contributions are highly encouraged. Please submit **pull requests (PRs)** or ra
 This project is distributed under the MIT License.
 
 ---
-*This project is still in heavy development, i am adding new features and new models*
 *Advancing the integrity of journalism through artificial intelligence.*
 
