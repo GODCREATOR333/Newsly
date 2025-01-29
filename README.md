@@ -82,12 +82,7 @@ Contributions are highly encouraged. Please submit **pull requests (PRs)** or ra
 
 This project is distributed under the MIT License.
 
-## 🌐 Connect with Us
-
-- **GitHub**: [@GODCREATOR333](https://github.com/GODCREATOR333)
-- **Twitter/X**: [@yourhandle](https://twitter.com/yourhandle) <!-- Replace with actual handle -->
-
 ---
-
+*This project is still in heavy development, i am adding new features and new models*
 *Advancing the integrity of journalism through artificial intelligence.*
 
