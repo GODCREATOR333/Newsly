@@ -56,7 +56,7 @@ user_proxy = ConversableAgent(
 # Initiate a chat from the user proxy to ask for a calculation
 chat_result = user_proxy.initiate_chat(
     assistant,
-    message="What is (44232 + 13312 / (232 - 32)) * 5?"
+    message="What is 2^4 + 14456?"
 )
 
 # Output the result of the calculation

@@ -1,0 +1,2 @@
+Browser_use requires >= Py 3.11
+New venv is used (.venv with required packages and python 3.11.11)
