@@ -2,6 +2,7 @@
 import asyncio
 from crawler import crawl_websites
 from check_valid_results import check_valid_links_in_results
+from news_db import update_db  # Import the update_db function
 
 async def main():
     # Define the URLs to crawl
@@ -10,11 +11,12 @@ async def main():
         "https://news.ycombinator.com/"
     ]
 
-    # Call the crawl_websites function
+    # Execute the web crawling and validation tasks
     await crawl_websites(urls)
-
-    # Check and clean the JSON files for invalid links
     await check_valid_links_in_results()
+
+    # Update the MongoDB with valid data
+    await update_db()
 
 if __name__ == "__main__":
     asyncio.run(main())
