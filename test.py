@@ -1,7 +1,7 @@
 from scrapegraphai.graphs import SmartScraperGraph
 from google import genai
 import json 
-GOOGLE_APIKEY = "AIzaSyCvBIIDBFzZ1X2gBGFNQj0FTm4nZgXMF90"
+GOOGLE_APIKEY = ""
 
 # Define the configuration for the graph
 graph_config = {

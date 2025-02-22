@@ -45,7 +45,8 @@ async def update_db():
                         "link": item.get("link", ""),
                         "date": None,    # Placeholder for future updates
                         "author": None,  # Placeholder for future updates
-                        "sources": None  # Placeholder for future updates
+                        "sources": None, # Placeholder for future updates
+                        "Content":None,# Placeholder for future updates
                     }
                     # Upsert the document into the collection
                     collection.update_one(
