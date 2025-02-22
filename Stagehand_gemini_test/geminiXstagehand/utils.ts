@@ -1,6 +1,9 @@
 import { ObserveResult, Page } from "@browserbasehq/stagehand";
 import boxen from "boxen";
+import chalk from "chalk";
+import fs from "fs/promises";
 import { z } from "zod";
+
 export function announce(message: string, title?: string) {
   console.log(
     boxen(message, {
@@ -94,3 +97,75 @@ export async function clearOverlays(page: Page) {
   });
 }
 
+export async function simpleCache(
+  instruction: string,
+  actionToCache: ObserveResult
+) {
+  // Save action to cache.json
+  try {
+    // Read existing cache if it exists
+    let cache: Record<string, ObserveResult> = {};
+    try {
+      const existingCache = await fs.readFile("cache.json", "utf-8");
+      cache = JSON.parse(existingCache);
+    } catch (error) {
+      // File doesn't exist yet, use empty cache
+    }
+
+    // Add new action to cache
+    cache[instruction] = actionToCache;
+
+    // Write updated cache to file
+    await fs.writeFile("cache.json", JSON.stringify(cache, null, 2));
+  } catch (error) {
+    console.error(chalk.red("Failed to save to cache:"), error);
+  }
+}
+
+export async function readCache(
+  instruction: string
+): Promise<ObserveResult | null> {
+  try {
+    const existingCache = await fs.readFile("cache.json", "utf-8");
+    const cache: Record<string, ObserveResult> = JSON.parse(existingCache);
+    return cache[instruction] || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * This function is used to act with a cacheable action.
+ * It will first try to get the action from the cache.
+ * If not in cache, it will observe the page and cache the result.
+ * Then it will execute the action.
+ * @param instruction - The instruction to act with.
+ */
+export async function actWithCache(
+  page: Page,
+  instruction: string
+): Promise<void> {
+  // Try to get action from cache first
+  const cachedAction = await readCache(instruction);
+  if (cachedAction) {
+    console.log(chalk.blue("Using cached action for:"), instruction);
+    await page.act(cachedAction);
+    return;
+  }
+
+  // If not in cache, observe the page and cache the result
+  const results = await page.observe(instruction);
+  console.log(chalk.blue("Got results:"), results);
+
+  // Cache the playwright action
+  const actionToCache = results[0];
+  console.log(chalk.blue("Taking cacheable action:"), actionToCache);
+  await simpleCache(instruction, actionToCache);
+  // OPTIONAL: Draw an overlay over the relevant xpaths
+  await drawObserveOverlay(page, results);
+  await page.waitForTimeout(1000); // Can delete this line, just a pause to see the overlay
+  await clearOverlays(page);
+
+  // Execute the action
+  await page.act(actionToCache);
+}

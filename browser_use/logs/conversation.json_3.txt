@@ -1,0 +1,298 @@
+ SystemMessage 
+You are a precise browser automation agent that interacts with websites through structured commands. Your role is to:
+1. Analyze the provided webpage elements and structure
+2. Use the given information to accomplish the ultimate task
+3. Respond with valid JSON containing your next action sequence and state assessment
+
+
+
+INPUT STRUCTURE:
+1. Current URL: The webpage you're currently on
+2. Available Tabs: List of open browser tabs
+3. Interactive Elements: List in the format:
+   index[:]<element_type>element_text</element_type>
+   - index: Numeric identifier for interaction
+   - element_type: HTML element type (button, input, etc.)
+   - element_text: Visible text or element description
+
+Example:
+[33]<button>Submit Form</button>
+[] Non-interactive text
+
+
+Notes:
+- Only elements with numeric indexes inside [] are interactive
+- [] elements provide context but cannot be interacted with
+
+
+
+1. RESPONSE FORMAT: You must ALWAYS respond with valid JSON in this exact format:
+   {
+     "current_state": {
+		"page_summary": "Quick detailed summary of new information from the current page which is not yet in the task history memory. Be specific with details which are important for the task. This is not on the meta level, but should be facts. If all the information is already in the task history memory, leave this empty.",
+		"evaluation_previous_goal": "Success|Failed|Unknown - Analyze the current elements and the image to check if the previous goals/actions are successful like intended by the task. Ignore the action result. The website is the ground truth. Also mention if something unexpected happened like new suggestions in an input field. Shortly state why/why not",
+       "memory": "Description of what has been done and what you need to remember. Be very specific. Count here ALWAYS how many times you have done something and how many remain. E.g. 0 out of 10 websites analyzed. Continue with abc and xyz",
+       "next_goal": "What needs to be done with the next actions"
+     },
+     "action": [
+       {
+         "one_action_name": {
+           // action-specific parameter
+         }
+       },
+       // ... more actions in sequence
+     ]
+   }
+
+2. ACTIONS: You can specify multiple actions in the list to be executed in sequence. But always specify only one action name per item.
+
+   Common action sequences:
+   - Form filling: [
+       {"input_text": {"index": 1, "text": "username"}},
+       {"input_text": {"index": 2, "text": "password"}},
+       {"click_element": {"index": 3}}
+     ]
+   - Navigation and extraction: [
+       {"open_new_tab": {}},
+       {"go_to_url": {"url": "https://example.com"}},
+       {"extract_page_content": {}}
+     ]
+
+
+3. ELEMENT INTERACTION:
+   - Only use indexes that exist in the provided element list
+   - Each element has a unique index number (e.g., "[33]<button>")
+   - Elements marked with "[]Non-interactive text" are non-interactive (for context only)
+
+4. NAVIGATION & ERROR HANDLING:
+   - If no suitable elements exist, use other functions to complete the task
+   - If stuck, try alternative approaches - like going back to a previous page, new search, new tab etc.
+   - Handle popups/cookies by accepting or closing them
+   - Use scroll to find elements you are looking for
+   - If you want to research something, open a new tab instead of using the current tab
+   - If captcha pops up, and you cant solve it, either ask for human help or try to continue the task on a different page.
+
+5. TASK COMPLETION:
+   - Use the done action as the last action as soon as the ultimate task is complete
+   - Dont use "done" before you are done with everything the user asked you. 
+   - If you have to do something repeatedly for example the task says for "each", or "for all", or "x times", count always inside "memory" how many times you have done it and how many remain. Don't stop until you have completed like the task asked you. Only call done after the last step.
+   - Don't hallucinate actions
+   - If the ultimate task requires specific information - make sure to include everything in the done function. This is what the user will see. Do not just say you are done, but include the requested information of the task.
+
+6. VISUAL CONTEXT:
+   - When an image is provided, use it to understand the page layout
+   - Bounding boxes with labels correspond to element indexes
+   - Each bounding box and its label have the same color
+   - Most often the label is inside the bounding box, on the top right
+   - Visual context helps verify element locations and relationships
+   - sometimes labels overlap, so use the context to verify the correct element
+
+7. Form filling:
+   - If you fill an input field and your action sequence is interrupted, most often a list with suggestions popped up under the field and you need to first select the right element from the suggestion list.
+
+8. ACTION SEQUENCING:
+   - Actions are executed in the order they appear in the list
+   - Each action should logically follow from the previous one
+   - If the page changes after an action, the sequence is interrupted and you get the new state.
+   - If content only disappears the sequence continues.
+   - Only provide the action sequence until you think the page will change.
+   - Try to be efficient, e.g. fill forms at once, or chain actions where nothing changes on the page like saving, extracting, checkboxes...
+   - only use multiple actions if it makes sense.
+
+9. Long tasks:
+- If the task is long keep track of the status in the memory. If the ultimate task requires multiple subinformation, keep track of the status in the memory.
+- If you get stuck, 
+
+10. Extraction:
+- If your task is to find information or do research - call extract_page_content on the specific pages to get and store the information.
+
+   - use maximum 10 actions per sequence
+
+Functions:
+Complete task: 
+{done: {'text': {'type': 'string'}}}
+Search the query in Google in the current tab, the query should be a search query like humans search in Google, concrete and not vague or super long. More the single most important items. : 
+{search_google: {'query': {'type': 'string'}}}
+Navigate to URL in the current tab: 
+{go_to_url: {'url': {'type': 'string'}}}
+Go back: 
+{go_back: {}}
+Click element: 
+{click_element: {'index': {'type': 'integer'}, 'xpath': {'anyOf': [{'type': 'string'}, {'type': 'null'}], 'default': None}}}
+Input text into a input interactive element: 
+{input_text: {'index': {'type': 'integer'}, 'text': {'type': 'string'}, 'xpath': {'anyOf': [{'type': 'string'}, {'type': 'null'}], 'default': None}}}
+Switch tab: 
+{switch_tab: {'page_id': {'type': 'integer'}}}
+Open url in new tab: 
+{open_tab: {'url': {'type': 'string'}}}
+Extract page content to retrieve specific information from the page, e.g. all company names, a specifc description, all information about, links with companies in structured format or simply links: 
+{extract_content: {'goal': {'type': 'string'}}}
+Scroll down the page by pixel amount - if no amount is specified, scroll down one page: 
+{scroll_down: {'amount': {'anyOf': [{'type': 'integer'}, {'type': 'null'}], 'default': None}}}
+Scroll up the page by pixel amount - if no amount is specified, scroll up one page: 
+{scroll_up: {'amount': {'anyOf': [{'type': 'integer'}, {'type': 'null'}], 'default': None}}}
+Send strings of special keys like Backspace, Insert, PageDown, Delete, Enter, Shortcuts such as `Control+o`, `Control+Shift+T` are supported as well. This gets used in keyboard.press. Be aware of different operating systems and their shortcuts: 
+{send_keys: {'keys': {'type': 'string'}}}
+If you dont find something which you want to interact with, scroll to it: 
+{scroll_to_text: {'text': {'type': 'string'}}}
+Get all options from a native dropdown: 
+{get_dropdown_options: {'index': {'type': 'integer'}}}
+Select dropdown option for interactive element index by the text of the option you want to select: 
+{select_dropdown_option: {'index': {'type': 'integer'}, 'text': {'type': 'string'}}}
+
+Remember: Your responses must be valid JSON matching the specified format. Each action in the sequence must be valid.
+
+ HumanMessage 
+Your ultimate task is: """go this website(https://apnews.com/article/apple-low-cost-iphone-artificial-intelligence-1fc43f8b839d7995763fbe939f5de290) and extract the full content from the main article word by word and do not extract anyother irrelevant information.ONly print the content from the article""". If you achieved your ultimate task, stop everything and use the done action in the next step to complete the task. If not, continue as usual.
+
+ HumanMessage 
+Example output:
+
+ AIMessage 
+
+
+ ToolMessage 
+Browser started
+
+ HumanMessage 
+[Your task history memory starts here]
+
+ AIMessage 
+
+
+ ToolMessage 
+
+
+ HumanMessage 
+Action error: Error executing action go_to_url: Page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "https://apnews.com/article/apple-low-cost-iphone-artificial-intelligence-1fc43f8b839d7995763fbe939f5de290", waiting until "load"
+
+ HumanMessage 
+[Task history memory ends here]
+[Current state starts here]
+You will see the following only once - if you need to remember it and you dont know it yet, write it down in the memory:
+Current url: https://apnews.com/article/apple-low-cost-iphone-artificial-intelligence-1fc43f8b839d7995763fbe939f5de290
+Available tabs:
+[TabInfo(page_id=0, url='https://apnews.com/article/apple-low-cost-iphone-artificial-intelligence-1fc43f8b839d7995763fbe939f5de290', title='Apple unveils iPhone 16e with AI features | AP News')]
+Interactive elements from current page:
+... 1200 pixels above - scroll or extract content to see more ...
+[0]<a aria-label="Enable accessibility">Enable accessibility</a>
+[1]<iframe name="google_ads_iframe_/15786418/APNews/site/apnews_leaderboard/dynamic_1_0" title="3rd party ad content" aria-label="Advertisement" tabindex="0"></iframe>
+[2]<a ></a>
+[3]<img alt=""></img>
+[4]<div tabindex="0" role="button"></div>
+[5]<a aria-label="home page"></a>
+[6]<img alt="AP Logo"></img>
+[7]<button aria-expanded="false">Menu</button>
+[8]<a >World</a>
+[9]<a >U.S.</a>
+[10]<a >Politics</a>
+[11]<a >Sports</a>
+[12]<a >Entertainment</a>
+[13]<a >Business</a>
+[14]<a >Science</a>
+[15]<a >Fact Check</a>
+[16]<a >Oddities</a>
+[17]<a >Be Well</a>
+[18]<a >Newsletters</a>
+[19]<li tabindex="0">...</li>
+[20]<button aria-label="More"></button>
+[21]<button >Show Search</button>
+[22]<a >Live updates: Trump administration</a>
+[23]<a >Beard ban</a>
+[24]<a >Pope’s health</a>
+[25]<a >UnitedHealth Group shares</a>
+[]Voletta Wallace
+[]AP SETS THE STANDARD FOR POLITICAL REPORTING.
+[]SUPPORT INDEPENDENT, FACT-BASED JOURNALISM.
+[26]<button >DONATE</button>
+[27]<img alt="An Apple logo adorns the facade of the downtown Brooklyn Apple store on March 14, 2020, in New York. (AP Photo/Kathy Willens, File)"></img>
+[]An Apple logo adorns the facade of the downtown Brooklyn Apple store on March 14, 2020, in New York. (AP Photo/Kathy Willens, File)
+[28]<a ></a>
+[29]<img ></img>
+[]By
+[30]<a >MICHAEL LIEDTKE</a>
+[]Updated 2:56 AM GMT+5:30, February 20, 2025
+[31]<button >Share</button>
+[]Apple has released a sleeker and more expensive version of its lowest priced iPhone in an attempt to widen the audience for a bundle of artificial intelligence technology that the company has been hoping will revive demand for its most profitable product lineup.
+[]The iPhone 16e unveiled Wednesday is the fourth-generation of a model that’s sold at a dramatically lower price than the iPhone’s standard and premium models. The previous bargain-bin models were called the iPhone SE, with the last version coming out in 2022.
+[]Like the higher-priced
+[32]<a >iPhone 16 lineup unveiled last September</a>
+[], the iPhone 16e includes the souped-up computer chip needed to process an array of AI features that automatically summarize text, audio and create on-the-fly emojis while smartening up the device’s virtual assistant, Siri. It will also have a more powerful battery and camera.
+[]Advertisement
+[33]<img ></img>
+[34]<img ></img>
+[35]<img ></img>
+[36]<img ></img>
+[]All those upgrades will translate into a higher starting price for an iPhone 16e at $600, a 40% increase from $430 for the last iPhone SE. But iPhone 16e will be more affordable than the cheapest standard iPhone 16 at $800. The new phone will be available in stores Feb. 28, but can be pre-ordered beginning Friday.
+[]Related Stories
+[37]<a aria-label="Samsung aims to turn its next generation of Galaxy smartphones into AI companions"></a>
+[38]<img alt="Samsung aims to turn its next generation of Galaxy smartphones into AI companions"></img>
+[39]<a ></a>
+[40]<a aria-label="Apple's iPhone sales during the holiday season slipped despite a highly anticipated AI rollout"></a>
+[41]<img alt="Apple's iPhone sales during the holiday season slipped despite a highly anticipated AI rollout"></img>
+[42]<a ></a>
+[43]<a aria-label="Apple pulls error-prone AI-generated news summaries in its beta iPhone software"></a>
+[44]<img alt="Apple pulls error-prone AI-generated news summaries in its beta iPhone software"></img>
+[45]<a ></a>
+[46]<img ></img>
+[47]<img ></img>
+[48]<img ></img>
+[49]<img ></img>
+[50]<iframe name="google_ads_iframe_/15786418/APNews/site/apnews_story_rail_large/dynamic_1_0" title="3rd party ad content" aria-label="Advertisement" tabindex="0"></iframe>
+[51]<a ></a>
+[52]<img alt=""></img>
+[53]<div tabindex="0" role="button"></div>
+[]Most read
+[54]<a aria-label="Vatican says Pope Francis is ‘improving slightly’ as cardinals acknowledge resignation is possible"></a>
+[55]<img alt="People walk in front of the main entrance of the Agostino Gemelli Polyclinic in Rome, Wednesday, Feb. 19, 2025, where the Pontiff is hospitalized since Friday, Feb. 14. (AP Photo/Andrew Medichini)"></img>
+[56]<a >Vatican says Pope Francis is ‘improving slightly’ as cardinals acknowledge resignation is possible</a>
+[]Trump’s attempts to denigrate Zelenskyy have led to a surge in Ukrainian unity
+[57]<a >Singer of Canadian anthem at 4 Nations Face-Off changes lyric to protest Trump’s 51st state remarks</a>
+[]Could Trump really return DOGE savings to taxpayers?
+[]Trump loyalist Kash Patel is confirmed as FBI director by the Senate despite deep Democratic doubts
+[]by Taboola
+[]Suggested For You
+[58]<a ></a>
+[59]<a title="Crossout: New Apocalyptic MMO"></a>
+[60]<span role="link"></span>
+[61]<span role="link" aria-label="Crossout in Taboola advertising section"></span>
+[62]<a aria-label="Taboola Disclosure"></a>
+[63]<button type="button"></button>
+[64]<a ></a>
+[65]<a title="Your Hotseat Awaits with Philips"></a>
+[66]<span role="link"></span>
+[67]<span role="link" aria-label="Philips Air Fryer in Taboola advertising section"></span>
+[68]<a aria-label="Taboola Disclosure"></a>
+[69]<a ></a>
+[70]<img ></img>
+[71]<img ></img>
+[72]<a >*</a>
+[73]<a ></a>
+[74]<a >View</a>
+[75]<a >View</a>
+[76]<a >View</a>
+[77]<img ></img>
+[]Administrations change, our mission endures.
+[]AP delivers accurate, nonpartisan reporting that holds power to account and informs four billion people daily. Support independent journalism.
+[78]<a >Donate</a>
+... 5731 pixels below - scroll or extract content to see more ...
+Current date and time: 2025-02-22 02:48
+
+ RESPONSE
+{
+  "current_state": {
+    "page_summary": "The page loaded successfully. It contains an article about Apple's new iPhone 16e.",
+    "evaluation_previous_goal": "Failed - The page timed out on the first attempt. But now the page loaded successfully.",
+    "memory": "Starting the task. Need to extract the full content from the main article word by word.",
+    "next_goal": "Extract the article content."
+  },
+  "action": [
+    {
+      "extract_content": {
+        "goal": "Extract the full content from the main article word by word. Only print the content from the article"
+      }
+    }
+  ]
+}
