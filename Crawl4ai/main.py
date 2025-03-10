@@ -20,6 +20,7 @@ async def main():
     await update_db()
 
     # Scraping and updating each article from db
+    
     # await update_content()
 
 if __name__ == "__main__":
