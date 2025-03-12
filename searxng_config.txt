@@ -1,0 +1,95 @@
+# see https://docs.searxng.org/admin/settings/settings.html#settings-use-default-settings
+use_default_settings: true
+
+server:
+  # base_url is defined in the SEARXNG_BASE_URL environment variable, see .env and docker-compose.yml
+  secret_key: "d97eb9929653a683e6c48c842dd779ca42f678b3cd0d981ce207c2d837004065"  # change this!
+  limiter: false  # can be disabled for a private instance
+  image_proxy: true # Allow image access
+  file_proxy: true # Allow file access
+  request_timeout: 20.0 # Longer timeout 
+
+ui:
+  static_use_hash: true
+
+redis:
+  url: redis://redis:6379/0
+  ttl: 600  # Cache results for 10 mins(test phase) (in seconds)
+search:
+  # Filter results. 0: None, 1: Moderate, 2: Strict
+  safe_search: 1
+  max_pages: 8
+  # remove format to deny access, use lower case.
+  # formats: [html, csv, json, rss]
+  formats:
+    - html
+    - json
+    - csv
+    - rss
+outgoing:
+  request_timeout: 15.0
+  max_requests_per_second: 100  # Increase this value
+  pool_connections: 150  # Connection pooling for performance
+  pool_maxsize: 150  # Maximum connection pool size
+
+engines:
+  general:
+    - name: google
+      enabled: true
+      weight: 3  # Higher weight for more prominent results
+    - name: bing
+      enabled: true
+      weight: 2
+    - name: duckduckgo
+      enabled: true
+    - name: brave
+      enabled: true
+    - name: qwant
+      enabled: true
+  news:
+    - name: google news
+      enabled: true
+      weight: 5
+    - name: bing news
+      enabled: true
+      weight: 4
+    - name: duckduckgo news
+      enabled: true
+      weight: 3
+    - name: qwant news
+      enabled: true
+    - name: yahoo news
+      enabled: true
+  social:
+    - name: reddit
+      enabled: true
+    - name: twitter
+      enabled: true
+# Academic/scientific search
+  science:
+    - name: arxiv
+      enabled: true
+    - name: pubmed
+      enabled: true
+    - name: semantic scholar
+      enabled: true
+    - name: google scholar
+      enabled: true
+  # Code search
+  code:
+    - name: github
+      enabled: true
+    - name: gitlab
+      enabled: true
+
+
+
+plugins:
+  - name: hostname_replace
+    enabled: true
+  - name: tracker_url_remover
+    enabled: true
+  - name: self_info
+    enabled: true
+  - name: https_rewrite
+    enabled: true

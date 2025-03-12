@@ -1,0 +1,14 @@
+For prod it is recommended to use tavily api :
+    edit .env to add the following :-   
+        TAVILY_API_KEY="api_key_here"
+        SCRAPER="tavily_extract"
+        RETRIEVER=tavily, arxiv
+
+
+For ollama local use local settings from .env
+    RETRIEVER=searx
+    SEARX_URL="http://localhost:8080"
+
+    inside of searxng-docker/searxng/ 
+        : change limiter.toml to false
+        : change setting.yml (limiter : flase)
